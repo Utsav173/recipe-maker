@@ -1,0 +1,54 @@
+import { Tabs } from 'expo-router';
+import React from 'react';
+import { Platform } from 'react-native';
+
+import { HapticTab } from '@/components/HapticTab';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import TabBarBackground from '@/components/ui/TabBarBackground';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { SQLiteProvider } from 'expo-sqlite';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function TabLayout() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <SQLiteProvider databaseName="test.db">
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarBackground: TabBarBackground,
+          tabBarStyle: Platform.select({
+            ios: {
+              // Use a transparent background on iOS to show the blur effect
+              position: 'absolute',
+            },
+            default: {},
+          }),
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'વાનગીઓ',
+            tabBarIcon: ({ size, color }) => (
+              <Ionicons name="restaurant" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: 'સેટિંગ્સ',
+            tabBarIcon: ({ size, color }) => (
+              <Ionicons name="settings" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </SQLiteProvider>
+  );
+}

@@ -1,0 +1,236 @@
+import React from 'react';
+import {
+	Modal,
+	View,
+	Text,
+	StyleSheet,
+	ScrollView,
+	Pressable,
+	StatusBar,
+	useWindowDimensions,
+} from 'react-native';
+import { Recipe } from '../types/recipe';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+
+type Props = {
+	recipe: Recipe['recipe'];
+	visible: boolean;
+	onClose: () => void;
+};
+
+export default function RecipeModal({ recipe, visible, onClose }: Props) {
+	const { height } = useWindowDimensions();
+
+	return (
+		<Modal
+			animationType="slide"
+			transparent={true}
+			visible={visible}
+			onRequestClose={onClose}
+		>
+			<BlurView intensity={95} style={StyleSheet.absoluteFill} />
+			<View
+				style={[styles.centeredView, { paddingTop: StatusBar.currentHeight }]}
+			>
+				<View style={[styles.modalView, { maxHeight: height * 0.90 }]}>
+					<Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
+						<MaterialCommunityIcons name="close" size={24} color="#666" />
+					</Pressable>
+
+					<ScrollView
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={styles.scrollContent}
+					>
+						<Text style={styles.title}>{recipe.title}</Text>
+						<Text style={styles.description}>{recipe.description}</Text>
+
+						<View style={styles.metaInfo}>
+							{recipe.difficulty && (
+								<View style={styles.metaItem}>
+									<MaterialCommunityIcons
+										name="chef-hat"
+										size={18}
+										color="#666"
+									/>
+									<Text style={styles.metaText}>{recipe.difficulty}</Text>
+								</View>
+							)}
+							{recipe.prepTime && (
+								<View style={styles.metaItem}>
+									<MaterialCommunityIcons
+										name="clock-outline"
+										size={18}
+										color="#666"
+									/>
+									<Text style={styles.metaText}>{recipe.prepTime} મિનિટ</Text>
+								</View>
+							)}
+							{recipe.servings && (
+								<View style={styles.metaItem}>
+									<MaterialCommunityIcons
+										name="account-group"
+										size={18}
+										color="#666"
+									/>
+									<Text style={styles.metaText}>{recipe.servings} વ્યક્તિ</Text>
+								</View>
+							)}
+						</View>
+
+						<View style={styles.section}>
+							<Text style={styles.sectionTitle}>સામગ્રી</Text>
+							{recipe.ingredients.map((ingredient, index) => (
+								<View key={index} style={styles.ingredientItem}>
+									<View style={styles.bullet} />
+									<Text style={styles.ingredientText}>{ingredient}</Text>
+								</View>
+							))}
+						</View>
+
+						<View style={styles.section}>
+							<Text style={styles.sectionTitle}>રીત</Text>
+							{recipe.steps.map((step, index) => (
+								<View key={index} style={styles.stepItem}>
+									<Text style={styles.stepNumber}>{index + 1}</Text>
+									<Text style={styles.stepText}>{step}</Text>
+								</View>
+							))}
+						</View>
+
+						<View style={styles.tags}>
+							{recipe.tags.map((tag, index) => (
+								<View key={index} style={styles.tag}>
+									<Text style={styles.tagText}>{tag}</Text>
+								</View>
+							))}
+						</View>
+					</ScrollView>
+				</View>
+			</View>
+		</Modal>
+	);
+}
+
+const styles = StyleSheet.create({
+	centeredView: {
+		flex: 1,
+		justifyContent: 'flex-end',
+	},
+	modalView: {
+		backgroundColor: 'white',
+		borderTopLeftRadius: 24,
+		borderTopRightRadius: 24,
+		padding: 24,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: -5 },
+		shadowOpacity: 0.25,
+		shadowRadius: 8,
+		elevation: 20,
+	},
+	scrollContent: {
+		paddingTop: 20,
+		paddingBottom: 40,
+	},
+	closeButton: {
+		position: 'absolute',
+		right: 20,
+		top: 20,
+		zIndex: 1,
+		backgroundColor: '#F3F4F6',
+		borderRadius: 20,
+		padding: 8,
+	},
+	title: {
+		fontSize: 28,
+		fontWeight: 'bold',
+		color: '#111',
+		marginBottom: 12,
+		marginTop: 24,
+	},
+	description: {
+		fontSize: 16,
+		color: '#666',
+		marginBottom: 24,
+		lineHeight: 24,
+	},
+	metaInfo: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 16,
+		marginBottom: 32,
+		paddingBottom: 24,
+		borderBottomWidth: 1,
+		borderBottomColor: '#F3F4F6',
+	},
+	metaItem: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 8,
+	},
+	metaText: {
+		fontSize: 15,
+		color: '#666',
+	},
+	section: {
+		marginBottom: 32,
+	},
+	sectionTitle: {
+		fontSize: 20,
+		fontWeight: '600',
+		color: '#111',
+		marginBottom: 16,
+	},
+	ingredientItem: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 12,
+		gap: 12,
+	},
+	bullet: {
+		width: 6,
+		height: 6,
+		borderRadius: 3,
+		backgroundColor: '#666',
+	},
+	ingredientText: {
+		fontSize: 16,
+		color: '#333',
+		flex: 1,
+		lineHeight: 24,
+	},
+	stepItem: {
+		flexDirection: 'row',
+		marginBottom: 16,
+		gap: 16,
+	},
+	stepNumber: {
+		fontSize: 16,
+		fontWeight: '600',
+		color: '#666',
+		width: 24,
+		textAlign: 'center',
+	},
+	stepText: {
+		fontSize: 16,
+		color: '#333',
+		flex: 1,
+		lineHeight: 24,
+	},
+	tags: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+		marginTop: 8,
+	},
+	tag: {
+		backgroundColor: '#F3F4F6',
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 20,
+	},
+	tagText: {
+		fontSize: 14,
+		color: '#4B5563',
+	},
+});
