@@ -5,6 +5,8 @@
       "name": "sample-expo",
       "dependencies": {
         "@ai-sdk/google": "^1.1.14",
+        "@expo-google-fonts/mukta-vaani": "^0.2.3",
+        "@expo-google-fonts/noto-sans-gujarati": "^0.2.3",
         "@expo/vector-icons": "^14.0.2",
         "@react-native-community/slider": "^4.5.5",
         "@react-native-picker/picker": "2.9.0",
@@ -321,6 +323,10 @@
     "@bcoe/v8-coverage": ["@bcoe/v8-coverage@0.2.3", "", {}, "sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw=="],
 
     "@egjs/hammerjs": ["@egjs/hammerjs@2.0.17", "", { "dependencies": { "@types/hammerjs": "^2.0.36" } }, "sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A=="],
+
+    "@expo-google-fonts/mukta-vaani": ["@expo-google-fonts/mukta-vaani@0.2.3", "", {}, "sha512-/AtngjBhj0dhCoIk+RUfdICFcVEx+UqmiFy2gCIcftSF6U21zaBWJ0g8+l5uZ38Y6ZrEKx3nmgVEkTuS8y262g=="],
+
+    "@expo-google-fonts/noto-sans-gujarati": ["@expo-google-fonts/noto-sans-gujarati@0.2.3", "", {}, "sha512-JwhNTwlYAv0IveqyEHtlJk12xxRq665fn3uh9WXnRkli0jYebt6hFDZGVvs9KNKLSGwyz+vnGfN+ERzGYJza9Q=="],
 
     "@expo/bunyan": ["@expo/bunyan@4.0.1", "", { "dependencies": { "uuid": "^8.0.0" } }, "sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg=="],
 

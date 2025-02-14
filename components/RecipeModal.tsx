@@ -2,25 +2,67 @@ import React from 'react';
 import {
 	Modal,
 	View,
-	Text,
 	StyleSheet,
 	ScrollView,
 	Pressable,
 	StatusBar,
 	useWindowDimensions,
+	Alert,
 } from 'react-native';
-import { Recipe } from '../types/recipe';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Recipe } from '@/types/recipe';
+import { ThemedText } from './ThemedText';
+import { ThemedView } from './ThemedView';
+import { useTheme } from '@/context/ThemeContext';
+import { Colors } from '@/constants/Colors';
 
 type Props = {
 	recipe: Recipe['recipe'];
 	visible: boolean;
 	onClose: () => void;
+	onDelete?: (title: string) => void; // id is now a number
 };
 
-export default function RecipeModal({ recipe, visible, onClose }: Props) {
+export default function RecipeModal({
+	recipe,
+	visible,
+	onClose,
+	onDelete,
+}: Props) {
 	const { height } = useWindowDimensions();
+	const { theme } = useTheme();
+
+	const handleDelete = () => {
+		// Use optional chaining and nullish coalescing
+		const recipeId = recipe?.title ?? null;
+
+		if (recipeId === null) {
+			Alert.alert('Error', 'Cannot delete recipe without an ID.');
+			return;
+		}
+
+		Alert.alert(
+			'રેસીપી કાઢી નાખો',
+			'શું તમે ખરેખર આ રેસીપી કાઢી નાખવા માંગો છો?',
+			[
+				{
+					text: 'રદ કરો',
+					style: 'cancel',
+				},
+				{
+					text: 'કાઢી નાખો',
+					style: 'destructive',
+					onPress: () => {
+						if (onDelete) {
+							onDelete(recipeId); // Pass the ID
+							onClose();
+						}
+					},
+				},
+			]
+		);
+	};
 
 	return (
 		<Modal
@@ -33,17 +75,25 @@ export default function RecipeModal({ recipe, visible, onClose }: Props) {
 			<View
 				style={[styles.centeredView, { paddingTop: StatusBar.currentHeight }]}
 			>
-				<View style={[styles.modalView, { maxHeight: height * 0.90 }]}>
+				<ThemedView style={[styles.modalView, { maxHeight: height * 0.9 }]}>
 					<Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
-						<MaterialCommunityIcons name="close" size={24} color="#666" />
+						<MaterialCommunityIcons
+							name="close"
+							size={24}
+							color={Colors[theme].icon}
+						/>
 					</Pressable>
 
 					<ScrollView
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={styles.scrollContent}
 					>
-						<Text style={styles.title}>{recipe.title}</Text>
-						<Text style={styles.description}>{recipe.description}</Text>
+						<ThemedText type="title" style={styles.title}>
+							{recipe.title}
+						</ThemedText>
+						<ThemedText style={styles.description}>
+							{recipe.description}
+						</ThemedText>
 
 						<View style={styles.metaInfo}>
 							{recipe.difficulty && (
@@ -51,9 +101,11 @@ export default function RecipeModal({ recipe, visible, onClose }: Props) {
 									<MaterialCommunityIcons
 										name="chef-hat"
 										size={18}
-										color="#666"
+										color={Colors[theme].icon}
 									/>
-									<Text style={styles.metaText}>{recipe.difficulty}</Text>
+									<ThemedText style={styles.metaText}>
+										{recipe.difficulty}
+									</ThemedText>
 								</View>
 							)}
 							{recipe.prepTime && (
@@ -61,9 +113,11 @@ export default function RecipeModal({ recipe, visible, onClose }: Props) {
 									<MaterialCommunityIcons
 										name="clock-outline"
 										size={18}
-										color="#666"
+										color={Colors[theme].icon}
 									/>
-									<Text style={styles.metaText}>{recipe.prepTime} મિનિટ</Text>
+									<ThemedText style={styles.metaText}>
+										{recipe.prepTime} મિનિટ
+									</ThemedText>
 								</View>
 							)}
 							{recipe.servings && (
@@ -71,42 +125,82 @@ export default function RecipeModal({ recipe, visible, onClose }: Props) {
 									<MaterialCommunityIcons
 										name="account-group"
 										size={18}
-										color="#666"
+										color={Colors[theme].icon}
 									/>
-									<Text style={styles.metaText}>{recipe.servings} વ્યક્તિ</Text>
+									<ThemedText style={styles.metaText}>
+										{recipe.servings} વ્યક્તિ
+									</ThemedText>
 								</View>
 							)}
 						</View>
 
 						<View style={styles.section}>
-							<Text style={styles.sectionTitle}>સામગ્રી</Text>
+							<ThemedText type="subtitle" style={styles.sectionTitle}>
+								સામગ્રી
+							</ThemedText>
 							{recipe.ingredients.map((ingredient, index) => (
 								<View key={index} style={styles.ingredientItem}>
-									<View style={styles.bullet} />
-									<Text style={styles.ingredientText}>{ingredient}</Text>
+									<View
+										style={[
+											styles.bullet,
+											{ backgroundColor: Colors[theme].icon },
+										]}
+									/>
+									<ThemedText style={styles.ingredientText}>
+										{ingredient}
+									</ThemedText>
 								</View>
 							))}
 						</View>
 
 						<View style={styles.section}>
-							<Text style={styles.sectionTitle}>રીત</Text>
+							<ThemedText type="subtitle" style={styles.sectionTitle}>
+								રીત
+							</ThemedText>
 							{recipe.steps.map((step, index) => (
 								<View key={index} style={styles.stepItem}>
-									<Text style={styles.stepNumber}>{index + 1}</Text>
-									<Text style={styles.stepText}>{step}</Text>
+									<ThemedText type="defaultSemiBold" style={styles.stepNumber}>
+										{index + 1}
+									</ThemedText>
+									<ThemedText style={styles.stepText}>{step}</ThemedText>
 								</View>
 							))}
 						</View>
 
 						<View style={styles.tags}>
 							{recipe.tags.map((tag, index) => (
-								<View key={index} style={styles.tag}>
-									<Text style={styles.tagText}>{tag}</Text>
+								<View
+									key={index}
+									style={[
+										styles.tag,
+										{ backgroundColor: Colors[theme].background },
+									]}
+								>
+									<ThemedText style={styles.tagText}>{tag}</ThemedText>
 								</View>
 							))}
 						</View>
+						{/* Only show delete button if onDelete prop exists and recipe has an id  */}
+						{onDelete && recipe.title !== undefined && (
+							<Pressable
+								style={[
+									styles.deleteButton,
+									{ backgroundColor: Colors[theme].background },
+								]}
+								onPress={handleDelete}
+							>
+								<MaterialCommunityIcons
+									name="delete"
+									size={20}
+									color="#FF4444"
+								/>
+								<ThemedText style={styles.deleteButtonText}>
+									રેસીપી કાઢી નાખો
+								</ThemedText>
+							</Pressable>
+						)}
 					</ScrollView>
-				</View>
+				</ThemedView>
 			</View>
 		</Modal>
 	);
@@ -232,5 +326,20 @@ const styles = StyleSheet.create({
 	tagText: {
 		fontSize: 14,
 		color: '#4B5563',
+	},
+	deleteButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: 32,
+		padding: 12,
+		backgroundColor: '#FEE2E2',
+		borderRadius: 8,
+		gap: 8,
+	},
+	deleteButtonText: {
+		color: '#FF4444',
+		fontSize: 16,
+		fontWeight: '600',
 	},
 });

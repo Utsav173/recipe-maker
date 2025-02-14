@@ -6,8 +6,12 @@ import type { GoogleModelId } from '../types/config';
 const db = SQLite.openDatabaseSync('recipes.db');
 
 export const initDatabase = async () => {
-  await db.execAsync(
-    `CREATE TABLE IF NOT EXISTS recipes (
+	// await db.closeAsync();
+
+	// await SQLite.deleteDatabaseAsync('recipes.db');
+
+	await db.execAsync(
+		`CREATE TABLE IF NOT EXISTS recipes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
@@ -19,101 +23,117 @@ export const initDatabase = async () => {
         servings INTEGER,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       );`
-  );
+	);
 
-  // Config table
-  await db.execAsync(
-    `CREATE TABLE IF NOT EXISTS config (
+	// Config table
+	await db.execAsync(
+		`CREATE TABLE IF NOT EXISTS config (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         api_key TEXT NOT NULL,
         model_id TEXT NOT NULL DEFAULT 'gemini-2.0-flash-exp',
         temperature REAL NOT NULL DEFAULT 0.7,
+        theme TEXT CHECK(theme IN ('system', 'dark', 'light')) DEFAULT 'system',
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );`
-  );
+	);
 };
 
 export const saveConfig = (config: {
-  apiKey: string;
-  modelId: GoogleModelId;
-  temperature: number;
+	apiKey: string;
+	modelId: GoogleModelId;
+	temperature: number;
 }) => {
-  return new Promise((resolve, reject) => {
-    const validated = configSchema.parse(config);
+	return new Promise((resolve, reject) => {
+		const validated = configSchema.parse(config);
 
-    db.runAsync(
-      `INSERT OR REPLACE INTO config (
+		db.runAsync(
+			`INSERT OR REPLACE INTO config (
           id, api_key, model_id, temperature, updated_at
         ) VALUES (1, ?, ?, ?, CURRENT_TIMESTAMP);`,
-      [
-        validated.apiKey,
-        validated.modelId,
-        validated.temperature,
-      ]
-    )
-      .then((result) => resolve(result))
-      .catch((error) => {
-        reject(error);
-        return false;
-      });
-  });
+			[validated.apiKey, validated.modelId, validated.temperature]
+		)
+			.then((result) => resolve(result))
+			.catch((error) => {
+				reject(error);
+				return false;
+			});
+	});
 };
 
-export const getConfig = () => {
-  const data = db
-    .getFirstAsync('SELECT * FROM config WHERE id = 1;')
-    .then((result) => result)
-    .catch((error) => {
-      console.error('Failed to get config:', error);
-    });
+export const saveTheme = async (theme: 'system' | 'dark' | 'light') => {
+	await db.runAsync(
+		`UPDATE config SET theme = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1;`,
+		[theme]
+	);
+};
 
-  return data;
+export const getConfig = async () => {
+	const data = await db
+		.getFirstAsync('SELECT * FROM config WHERE id = 1;')
+		.then((result) => result)
+		.catch((error) => {
+			console.error('Failed to get config:', error);
+			return { theme: 'system' };
+		});
+
+	return data;
 };
 
 export const saveRecipe = async (recipe: Recipe['recipe']) => {
-  await db
-    .runAsync(
-      `INSERT INTO recipes (
+	await db
+		.runAsync(
+			`INSERT INTO recipes (
           title, description, ingredients, steps, tags, 
           difficulty, prepTime, servings
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-      [
-        recipe.title,
-        recipe.description,
-        JSON.stringify(recipe.ingredients),
-        JSON.stringify(recipe.steps),
-        JSON.stringify(recipe.tags),
-        recipe.difficulty || null,
-        recipe.prepTime || null,
-        recipe.servings || null,
-      ]
-    )
-    .then((result) => result)
-    .catch((error) => {
-      console.error('Failed to save recipe:', error);
-    });
+			[
+				recipe.title,
+				recipe.description,
+				JSON.stringify(recipe.ingredients),
+				JSON.stringify(recipe.steps),
+				JSON.stringify(recipe.tags),
+				recipe.difficulty || null,
+				recipe.prepTime || null,
+				recipe.servings || null,
+			]
+		)
+		.then((result) => result)
+		.catch((error) => {
+			console.error('Failed to save recipe:', error);
+		});
 };
 
 export const getRecentRecipes = () => {
-  const recipes = db
-    .getAllAsync(`SELECT * FROM recipes ORDER BY createdAt DESC LIMIT 10;`)
-    .then((allRows) => {
-      const recipes = allRows.map((row: any) => ({
-        title: row.title,
-        description: row.description,
-        ingredients: JSON.parse(row.ingredients),
-        steps: JSON.parse(row.steps),
-        tags: JSON.parse(row.tags),
-        difficulty: row.difficulty,
-        prepTime: row.prepTime,
-        servings: row.servings,
-      }));
-      return recipes;
-    })
-    .catch((error) => {
-      console.error('Failed to get recent recipes:', error);
-      return [];
-    });
+	const recipes = db
+		.getAllAsync(`SELECT * FROM recipes ORDER BY createdAt DESC LIMIT 10;`)
+		.then((allRows) => {
+			const recipes = allRows.map((row: any) => ({
+				title: row.title,
+				description: row.description,
+				ingredients: JSON.parse(row.ingredients),
+				steps: JSON.parse(row.steps),
+				tags: JSON.parse(row.tags),
+				difficulty: row.difficulty,
+				prepTime: row.prepTime,
+				servings: row.servings,
+			}));
+			return recipes;
+		})
+		.catch((error) => {
+			console.error('Failed to get recent recipes:', error);
+			return [];
+		});
 
-  return recipes;
+	return recipes;
+};
+
+// New function to delete a recipe by ID
+export const deleteRecipe = async (title: string) => {
+	// id is now a number
+	try {
+		await db.runAsync('DELETE FROM recipes WHERE title = ?;', [title]);
+	} catch (error) {
+		console.error('Failed to delete recipe', error);
+		throw error; // Re-throw error for caller to handle.
+	}
 };

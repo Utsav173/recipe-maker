@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.14",
+    "@expo-google-fonts/mukta-vaani": "^0.2.3",
+    "@expo-google-fonts/noto-sans-gujarati": "^0.2.3",
     "@expo/vector-icons": "^14.0.2",
     "@react-native-community/slider": "^4.5.5",
     "@react-native-picker/picker": "2.9.0",

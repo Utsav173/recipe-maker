@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Recipe } from '../types/recipe';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ThemedText } from './ThemedText';
 
 type Props = {
 	recipe: Recipe['recipe'];
@@ -15,19 +16,19 @@ export default function RecipeCard({ recipe, onPress }: Props) {
 			style={({ pressed }) => [styles.card, pressed && styles.pressed]}
 		>
 			<View style={styles.header}>
-				<Text style={styles.title}>{recipe.title}</Text>
+				<ThemedText style={styles.title}>{recipe.title}</ThemedText>
 				<MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
 			</View>
 
-			<Text style={styles.description} numberOfLines={2}>
+			<ThemedText style={styles.description} numberOfLines={2}>
 				{recipe.description}
-			</Text>
+			</ThemedText>
 
 			<View style={styles.metaInfo}>
 				{recipe.difficulty && (
 					<View style={styles.metaItem}>
 						<MaterialCommunityIcons name="chef-hat" size={16} color="#666" />
-						<Text style={styles.metaText}>{recipe.difficulty}</Text>
+						<ThemedText style={styles.metaText}>{recipe.difficulty}</ThemedText>
 					</View>
 				)}
 				{recipe.prepTime && (
@@ -37,7 +38,9 @@ export default function RecipeCard({ recipe, onPress }: Props) {
 							size={16}
 							color="#666"
 						/>
-						<Text style={styles.metaText}>{recipe.prepTime} મિનિટ</Text>
+						<ThemedText style={styles.metaText}>
+							{recipe.prepTime} મિનિટ
+						</ThemedText>
 					</View>
 				)}
 				{recipe.servings && (
@@ -47,7 +50,9 @@ export default function RecipeCard({ recipe, onPress }: Props) {
 							size={16}
 							color="#666"
 						/>
-						<Text style={styles.metaText}>{recipe.servings} વ્યક્તિ</Text>
+						<ThemedText style={styles.metaText}>
+							{recipe.servings} વ્યક્તિ
+						</ThemedText>
 					</View>
 				)}
 			</View>
@@ -55,7 +60,7 @@ export default function RecipeCard({ recipe, onPress }: Props) {
 			<View style={styles.tags}>
 				{recipe.tags.slice(0, 3).map((tag, index) => (
 					<View key={index} style={styles.tag}>
-						<Text style={styles.tagText}>{tag}</Text>
+						<ThemedText style={styles.tagText}>{tag}</ThemedText>
 					</View>
 				))}
 			</View>
