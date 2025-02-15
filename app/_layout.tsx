@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+	const { theme } = useTheme();
 	const [loaded] = useFonts({
 		MuktaVaani_400Regular,
 		NotoSansGujarati_400Regular,
@@ -32,8 +33,6 @@ export default function RootLayout() {
 	if (!loaded) {
 		return null;
 	}
-
-	const { theme } = useTheme();
 
 	return (
 		<MyThemeProvider>

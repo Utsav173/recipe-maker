@@ -15,7 +15,7 @@ import {
 import TabBarBackground from '@/components/ui/TabBarBackground';
 
 export default function TabLayout() {
-	const { theme } = useTheme(); // Use the context
+	const { theme } = useTheme();
 
 	return (
 		<SQLiteProvider databaseName="test.db">

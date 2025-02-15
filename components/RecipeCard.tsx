@@ -94,7 +94,7 @@ export default function RecipeCard({
 									color={Colors[theme].tint}
 								/>
 								<ThemedText style={styles.metaText}>
-									{recipe.prepTime} મિનિટ
+									{Number(recipe.prepTime) * 10} મિનિટ
 								</ThemedText>
 							</View>
 						)}

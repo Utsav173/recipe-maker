@@ -3,7 +3,6 @@ import {
 	StyleSheet,
 	TextInput,
 	Pressable,
-	Alert,
 	ScrollView,
 } from 'react-native';
 
@@ -14,9 +13,10 @@ import { Picker } from '@react-native-picker/picker';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/context/ThemeContext'; // Import
-import { Colors } from '@/constants/Colors'; // Import
+import { useTheme } from '@/context/ThemeContext';
+import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
+import ThemedAlert from '@/components/ThemedAlert';
 
 const MODEL_OPTIONS: { label: string; value: GoogleModelId }[] = [
 	{ label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash-exp' },
@@ -31,7 +31,7 @@ export default function SettingsScreen() {
 	const [temperature, setTemperature] = useState(0.7);
 	const [loading, setLoading] = useState(false);
 
-	const { theme } = useTheme(); // Get theme
+	const { theme } = useTheme();
 
 	useEffect(() => {
 		loadConfig();
@@ -41,20 +41,20 @@ export default function SettingsScreen() {
 		try {
 			const config = (await getConfig()) as any;
 			if (config) {
-				setApiKey(config.apiKey || '');
-				setModelId(config.modelId || 'gemini-2.0-flash-exp');
+				setApiKey(config.api_key || '');
+				setModelId(config.model_id || 'gemini-2.0-flash-exp');
 				setTemperature(
 					config.temperature === undefined ? 0.7 : config.temperature
 				);
 			}
 		} catch (error) {
-			Alert.alert('Error', 'Failed to load configuration');
+			ThemedAlert('Error', 'Failed to load configuration');
 		}
 	};
 
 	const handleSave = async () => {
 		if (!apiKey.trim()) {
-			Alert.alert('Error', 'Please enter your API key');
+			ThemedAlert('Error', 'Please enter your API key');
 			return;
 		}
 
@@ -65,9 +65,9 @@ export default function SettingsScreen() {
 				modelId,
 				temperature,
 			});
-			Alert.alert('Success', 'Settings saved successfully');
+			ThemedAlert('Success', 'Settings saved successfully');
 		} catch (error) {
-			Alert.alert('Error', 'Failed to save settings');
+			ThemedAlert('Error', 'Failed to save settings');
 		} finally {
 			setLoading(false);
 		}
@@ -112,7 +112,7 @@ export default function SettingsScreen() {
 								color: Colors[theme].text,
 								backgroundColor: Colors[theme].background,
 							},
-						]} // Themed border and text
+						]}
 						placeholder="Enter API key"
 						placeholderTextColor={Colors[theme].icon}
 						value={apiKey}
@@ -126,20 +126,30 @@ export default function SettingsScreen() {
 					<View
 						style={[
 							styles.pickerContainer,
-							{ borderColor: Colors[theme].icon },
+							{
+								borderColor: Colors[theme].icon,
+								backgroundColor: Colors[theme].background,
+							},
 						]}
 					>
 						<Picker
 							selectedValue={modelId}
 							onValueChange={(value) => setModelId(value as GoogleModelId)}
-							style={[styles.picker, { color: Colors[theme].text }]}
+							style={[
+								styles.picker,
+								{
+									color: Colors[theme].text,
+									backgroundColor: Colors[theme].background,
+								},
+							]}
+							dropdownIconColor={Colors[theme].icon}
 						>
 							{MODEL_OPTIONS.map((option) => (
 								<Picker.Item
 									key={option.value}
 									label={option.label}
 									value={option.value}
-									color={Colors[theme].text} //added theme text here.
+									color={'#000'}
 								/>
 							))}
 						</Picker>

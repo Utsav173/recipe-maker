@@ -27,7 +27,7 @@ export const Colors = {
 		icon: '#4A5568',
 		tabIconDefault: '#A0AEC0',
 		tabIconSelected: orange[500],
-		inputBorder: '#E2E8F0',
+		inputBorder: orange[700],
 		cardShadow: '#00000010',
 	},
 	dark: {
@@ -37,10 +37,10 @@ export const Colors = {
 		tint: orange[400],
 		accent: orange[300],
 		muted: orange[800],
-		icon: '#A0AEC0',
+		icon: '#F7FAFC',
 		tabIconDefault: '#718096',
 		tabIconSelected: orange[400],
-		inputBorder: '#4A5568',
+		inputBorder: orange[300],
 		cardShadow: '#00000030',
 	},
 };

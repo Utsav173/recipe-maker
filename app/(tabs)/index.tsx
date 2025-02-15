@@ -66,7 +66,7 @@ export default function HomeScreen() {
 
 		const config = (await getConfig()) as any;
 
-		if (!config?.apiKey) {
+		if (!config?.api_key) {
 			// Corrected property name
 			Alert.alert('Error', 'Please enter an API key in settings.'); // Clearer message
 			return;
@@ -112,7 +112,9 @@ export default function HomeScreen() {
 				]}
 			>
 				<View style={styles.searchContainer}>
-					<View style={styles.inputContainer}>
+					<View
+						style={[styles.inputContainer, { borderColor: Colors[theme].tint }]}
+					>
 						<TextInput
 							style={[
 								styles.input,

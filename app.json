@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "sample-expo",
 		"slug": "sample-expo",
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"orientation": "portrait",
 		"icon": "./assets/images/icons/ios-light.png",
 		"userInterfaceStyle": "automatic",
@@ -21,20 +21,28 @@
 		"assetBundlePatterns": ["**/*"],
 		"ios": {
 			"supportsTablet": true,
-			"icon": "./assets/images/icons/ios-light.png",
-			"dark": {
-				"icon": "./assets/images/icons/ios-dark.png"
-			},
-			"tinted": {
-				"icon": "./assets/images/icons/ios-tinted.png"
+			"icon": {
+				"light": "./assets/images/icons/ios-light.png",
+				"dark": "./assets/images/icons/ios-dark.png",
+				"tinted": "./assets/images/icons/ios-tinted.png"
 			}
 		},
 		"android": {
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/images/icons/adaptive-icon.png",
+				"monochromeImage": "./assets/images/icons/adaptive-icon.png",
 				"backgroundColor": "#FFFFFF"
 			},
-			"package": "com.utsav_khatri.sampleexpo"
+			"package": "com.utsav_khatri.sampleexpo",
+			"splash": {
+				"image": "./assets/images/icons/splash-icon-light.png",
+				"resizeMode": "contain",
+				"backgroundColor": "#ffffff",
+				"dark": {
+					"image": "./assets/images/icons/splash-icon-dark.png",
+					"backgroundColor": "#000000"
+				}
+			}
 		},
 		"web": {
 			"bundler": "metro",
