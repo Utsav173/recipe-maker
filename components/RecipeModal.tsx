@@ -8,56 +8,54 @@ import {
 	StatusBar,
 	useWindowDimensions,
 	Alert,
+	Animated,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { Recipe } from '@/types/recipe';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
-
-type Props = {
-	recipe: Recipe['recipe'];
-	visible: boolean;
-	onClose: () => void;
-	onDelete?: (title: string) => void; // id is now a number
-};
+import { Recipe } from '@/types/recipe';
 
 export default function RecipeModal({
 	recipe,
 	visible,
 	onClose,
 	onDelete,
-}: Props) {
+}: {
+	recipe: Recipe['recipe'];
+	visible: boolean;
+	onClose: () => void;
+	onDelete?: (title: string) => void;
+}) {
 	const { height } = useWindowDimensions();
 	const { theme } = useTheme();
+	const slideAnim = React.useRef(new Animated.Value(0)).current;
+
+	React.useEffect(() => {
+		if (visible) {
+			Animated.spring(slideAnim, {
+				toValue: 1,
+				tension: 65,
+				friction: 11,
+				useNativeDriver: true,
+			}).start();
+		}
+	}, [visible]);
 
 	const handleDelete = () => {
-		// Use optional chaining and nullish coalescing
-		const recipeId = recipe?.title ?? null;
-
-		if (recipeId === null) {
-			Alert.alert('Error', 'Cannot delete recipe without an ID.');
-			return;
-		}
-
 		Alert.alert(
 			'રેસીપી કાઢી નાખો',
 			'શું તમે ખરેખર આ રેસીપી કાઢી નાખવા માંગો છો?',
 			[
-				{
-					text: 'રદ કરો',
-					style: 'cancel',
-				},
+				{ text: 'રદ કરો', style: 'cancel' },
 				{
 					text: 'કાઢી નાખો',
 					style: 'destructive',
 					onPress: () => {
-						if (onDelete) {
-							onDelete(recipeId); // Pass the ID
-							onClose();
-						}
+						onDelete?.(recipe.title);
+						onClose();
 					},
 				},
 			]
@@ -66,17 +64,42 @@ export default function RecipeModal({
 
 	return (
 		<Modal
-			animationType="slide"
+			animationType="fade"
 			transparent={true}
 			visible={visible}
 			onRequestClose={onClose}
 		>
-			<BlurView intensity={95} style={StyleSheet.absoluteFill} />
+			<BlurView intensity={85} style={StyleSheet.absoluteFill} tint="dark" />
 			<View
 				style={[styles.centeredView, { paddingTop: StatusBar.currentHeight }]}
 			>
-				<ThemedView style={[styles.modalView, { maxHeight: height * 0.9 }]}>
-					<Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
+				<Animated.View
+					style={[
+						styles.modalView,
+						{
+							maxHeight: height * 0.9,
+							backgroundColor: Colors[theme].background,
+							transform: [
+								{
+									translateY: slideAnim.interpolate({
+										inputRange: [0, 1],
+										outputRange: [300, 0],
+									}),
+								},
+							],
+						},
+					]}
+				>
+					<LinearGradient
+						colors={[Colors[theme].tint + '10', Colors[theme].accent + '05']}
+						style={styles.headerGradient}
+					/>
+
+					<Pressable
+						style={[styles.closeButton]}
+						onPress={onClose}
+						hitSlop={12}
+					>
 						<MaterialCommunityIcons
 							name="close"
 							size={24}
@@ -91,17 +114,19 @@ export default function RecipeModal({
 						<ThemedText type="title" style={styles.title}>
 							{recipe.title}
 						</ThemedText>
-						<ThemedText style={styles.description}>
-							{recipe.description}
-						</ThemedText>
 
 						<View style={styles.metaInfo}>
 							{recipe.difficulty && (
-								<View style={styles.metaItem}>
+								<View
+									style={[
+										styles.metaItem,
+										{ backgroundColor: Colors[theme].surface },
+									]}
+								>
 									<MaterialCommunityIcons
 										name="chef-hat"
 										size={18}
-										color={Colors[theme].icon}
+										color={Colors[theme].tint}
 									/>
 									<ThemedText style={styles.metaText}>
 										{recipe.difficulty}
@@ -109,30 +134,27 @@ export default function RecipeModal({
 								</View>
 							)}
 							{recipe.prepTime && (
-								<View style={styles.metaItem}>
+								<View
+									style={[
+										styles.metaItem,
+										{ backgroundColor: Colors[theme].surface },
+									]}
+								>
 									<MaterialCommunityIcons
 										name="clock-outline"
 										size={18}
-										color={Colors[theme].icon}
+										color={Colors[theme].tint}
 									/>
 									<ThemedText style={styles.metaText}>
 										{recipe.prepTime} મિનિટ
 									</ThemedText>
 								</View>
 							)}
-							{recipe.servings && (
-								<View style={styles.metaItem}>
-									<MaterialCommunityIcons
-										name="account-group"
-										size={18}
-										color={Colors[theme].icon}
-									/>
-									<ThemedText style={styles.metaText}>
-										{recipe.servings} વ્યક્તિ
-									</ThemedText>
-								</View>
-							)}
 						</View>
+
+						<ThemedText style={styles.description}>
+							{recipe.description}
+						</ThemedText>
 
 						<View style={styles.section}>
 							<ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -143,7 +165,7 @@ export default function RecipeModal({
 									<View
 										style={[
 											styles.bullet,
-											{ backgroundColor: Colors[theme].icon },
+											{ backgroundColor: Colors[theme].tint },
 										]}
 									/>
 									<ThemedText style={styles.ingredientText}>
@@ -159,9 +181,21 @@ export default function RecipeModal({
 							</ThemedText>
 							{recipe.steps.map((step, index) => (
 								<View key={index} style={styles.stepItem}>
-									<ThemedText type="defaultSemiBold" style={styles.stepNumber}>
-										{index + 1}
-									</ThemedText>
+									<View
+										style={[
+											styles.stepNumber,
+											{ backgroundColor: Colors[theme].surface },
+										]}
+									>
+										<ThemedText
+											style={[
+												styles.stepNumberText,
+												{ color: Colors[theme].tint },
+											]}
+										>
+											{index + 1}
+										</ThemedText>
+									</View>
 									<ThemedText style={styles.stepText}>{step}</ThemedText>
 								</View>
 							))}
@@ -173,22 +207,20 @@ export default function RecipeModal({
 									key={index}
 									style={[
 										styles.tag,
-										{ backgroundColor: Colors[theme].background },
+										{ backgroundColor: Colors[theme].tint + '15' },
 									]}
 								>
-									<ThemedText style={styles.tagText}>{tag}</ThemedText>
+									<ThemedText
+										style={[styles.tagText, { color: Colors[theme].tint }]}
+									>
+										{tag}
+									</ThemedText>
 								</View>
 							))}
 						</View>
-						{/* Only show delete button if onDelete prop exists and recipe has an id  */}
-						{onDelete && recipe.title !== undefined && (
-							<Pressable
-								style={[
-									styles.deleteButton,
-									{ backgroundColor: Colors[theme].background },
-								]}
-								onPress={handleDelete}
-							>
+
+						{onDelete && (
+							<Pressable style={styles.deleteButton} onPress={handleDelete}>
 								<MaterialCommunityIcons
 									name="delete"
 									size={20}
@@ -200,7 +232,7 @@ export default function RecipeModal({
 							</Pressable>
 						)}
 					</ScrollView>
-				</ThemedView>
+				</Animated.View>
 			</View>
 		</Modal>
 	);
@@ -212,18 +244,25 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 	},
 	modalView: {
-		backgroundColor: 'white',
-		borderTopLeftRadius: 24,
-		borderTopRightRadius: 24,
-		padding: 24,
+		borderTopLeftRadius: 32,
+		borderTopRightRadius: 32,
+		overflow: 'hidden',
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: -5 },
 		shadowOpacity: 0.25,
-		shadowRadius: 8,
-		elevation: 20,
+		shadowRadius: 12,
+		elevation: 24,
+	},
+	headerGradient: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		height: 200,
 	},
 	scrollContent: {
-		paddingTop: 20,
+		padding: 24,
+		paddingTop: 12,
 		paddingBottom: 40,
 	},
 	closeButton: {
@@ -231,83 +270,80 @@ const styles = StyleSheet.create({
 		right: 20,
 		top: 20,
 		zIndex: 1,
-		backgroundColor: '#F3F4F6',
-		borderRadius: 20,
 		padding: 8,
+		borderRadius: 20,
 	},
 	title: {
-		fontSize: 28,
+		fontSize: 32,
 		fontWeight: 'bold',
-		color: '#111',
-		marginBottom: 12,
-		marginTop: 24,
+		marginTop: 32,
+		marginBottom: 20,
 	},
 	description: {
 		fontSize: 16,
-		color: '#666',
-		marginBottom: 24,
+		marginVertical: 24,
 		lineHeight: 24,
+		opacity: 0.9,
 	},
 	metaInfo: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		gap: 16,
-		marginBottom: 32,
-		paddingBottom: 24,
-		borderBottomWidth: 1,
-		borderBottomColor: '#F3F4F6',
+		gap: 12,
 	},
 	metaItem: {
 		flexDirection: 'row',
 		alignItems: 'center',
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 16,
 		gap: 8,
 	},
 	metaText: {
 		fontSize: 15,
-		color: '#666',
+		fontWeight: '500',
 	},
 	section: {
-		marginBottom: 32,
+		marginTop: 32,
 	},
 	sectionTitle: {
-		fontSize: 20,
+		fontSize: 22,
 		fontWeight: '600',
-		color: '#111',
-		marginBottom: 16,
+		marginBottom: 20,
 	},
 	ingredientItem: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginBottom: 12,
+		marginBottom: 16,
 		gap: 12,
 	},
 	bullet: {
-		width: 6,
-		height: 6,
-		borderRadius: 3,
-		backgroundColor: '#666',
+		width: 8,
+		height: 8,
+		borderRadius: 4,
 	},
 	ingredientText: {
 		fontSize: 16,
-		color: '#333',
 		flex: 1,
 		lineHeight: 24,
 	},
 	stepItem: {
 		flexDirection: 'row',
-		marginBottom: 16,
+		marginBottom: 24,
 		gap: 16,
 	},
 	stepNumber: {
+		width: 32,
+		height: 32,
+		borderRadius: 16,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	stepNumberText: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: '#666',
-		width: 24,
-		textAlign: 'center',
 	},
 	stepText: {
 		fontSize: 16,
-		color: '#333',
 		flex: 1,
 		lineHeight: 24,
 	},
@@ -315,26 +351,25 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		gap: 8,
-		marginTop: 8,
+		marginTop: 32,
 	},
 	tag: {
-		backgroundColor: '#F3F4F6',
-		paddingHorizontal: 12,
-		paddingVertical: 6,
+		paddingHorizontal: 14,
+		paddingVertical: 8,
 		borderRadius: 20,
 	},
 	tagText: {
 		fontSize: 14,
-		color: '#4B5563',
+		fontWeight: '600',
 	},
 	deleteButton: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginTop: 32,
-		padding: 12,
-		backgroundColor: '#FEE2E2',
-		borderRadius: 8,
+		marginTop: 40,
+		padding: 16,
+		backgroundColor: '#FFE5E5',
+		borderRadius: 12,
 		gap: 8,
 	},
 	deleteButtonText: {

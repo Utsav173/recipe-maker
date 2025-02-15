@@ -3,21 +3,18 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { SQLiteProvider } from 'expo-sqlite';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/context/ThemeContext'; // Import useTheme
+import { useTheme } from '@/context/ThemeContext';
 import {
 	ThemeProvider as NavigationThemeProvider,
 	DarkTheme,
 	DefaultTheme,
 } from '@react-navigation/native';
+import TabBarBackground from '@/components/ui/TabBarBackground';
 
 export default function TabLayout() {
-	//const colorScheme = useColorScheme(); // No longer needed
 	const { theme } = useTheme(); // Use the context
 
 	return (

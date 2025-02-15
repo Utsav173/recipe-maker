@@ -1,3 +1,4 @@
+//Themed Text
 import { Text, type TextProps, StyleSheet } from 'react-native';
 
 import { useTheme } from '@/context/ThemeContext';
@@ -43,7 +44,7 @@ export function ThemedText({
 const styles = StyleSheet.create({
 	default: {
 		fontSize: 16,
-		lineHeight: 24,
+		lineHeight: 28,
 	},
 	defaultSemiBold: {
 		fontSize: 16,
@@ -51,9 +52,8 @@ const styles = StyleSheet.create({
 		fontWeight: '600',
 	},
 	title: {
-		fontSize: 32,
+		fontSize: 28,
 		fontWeight: 'bold',
-		lineHeight: 32,
 	},
 	subtitle: {
 		fontSize: 20,
@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
 	},
 	link: {
 		lineHeight: 30,
-		fontSize: 16,
-		color: '#0a7ea4', // Consider using a themed color here too
+		color: '#0a7ea4', //removed hard coded
 	},
 });

@@ -1,6 +1,5 @@
 import {
 	View,
-	Text,
 	StyleSheet,
 	TextInput,
 	Pressable,
@@ -15,8 +14,9 @@ import { Picker } from '@react-native-picker/picker';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/context/ThemeContext'; // Import useTheme
-import { ColorSchemeName } from 'react-native';
+import { useTheme } from '@/context/ThemeContext'; // Import
+import { Colors } from '@/constants/Colors'; // Import
+import { ThemedText } from '@/components/ThemedText';
 
 const MODEL_OPTIONS: { label: string; value: GoogleModelId }[] = [
 	{ label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash-exp' },
@@ -31,7 +31,7 @@ export default function SettingsScreen() {
 	const [temperature, setTemperature] = useState(0.7);
 	const [loading, setLoading] = useState(false);
 
-	const { theme, setTheme } = useTheme(); // Use the context
+	const { theme } = useTheme(); // Get theme
 
 	useEffect(() => {
 		loadConfig();
@@ -41,9 +41,8 @@ export default function SettingsScreen() {
 		try {
 			const config = (await getConfig()) as any;
 			if (config) {
-				// Check if config exists
-				setApiKey(config.apiKey || ''); // Provide default values
-				setModelId(config.modelId || 'gemini-2.0-flash-exp'); // Provide default
+				setApiKey(config.apiKey || '');
+				setModelId(config.modelId || 'gemini-2.0-flash-exp');
 				setTemperature(
 					config.temperature === undefined ? 0.7 : config.temperature
 				);
@@ -75,92 +74,131 @@ export default function SettingsScreen() {
 	};
 
 	return (
-		<SafeAreaView style={styles.safeArea}>
-			<ScrollView style={styles.container}>
-				<View style={styles.section}>
-					<Text style={styles.sectionTitle}>API Configuration</Text>
-					<Text style={styles.description}>
+		<SafeAreaView
+			style={[styles.safeArea, { backgroundColor: Colors[theme].background }]}
+		>
+			<ScrollView
+				style={[
+					styles.container,
+					{ backgroundColor: Colors[theme].background },
+				]}
+			>
+				<View
+					style={[
+						styles.section,
+						{ backgroundColor: Colors[theme].background },
+					]}
+				>
+					<ThemedText
+						style={[styles.sectionTitle, { color: Colors[theme].text }]}
+					>
+						API Configuration
+					</ThemedText>
+					<ThemedText
+						style={[styles.description, { color: Colors[theme].text }]}
+					>
 						Enter your Google AI API key and configure model settings for recipe
 						generation.
-					</Text>
+					</ThemedText>
 
-					<Text style={styles.label}>API Key</Text>
+					<ThemedText style={[styles.label, { color: Colors[theme].text }]}>
+						API Key
+					</ThemedText>
 					<TextInput
-						style={styles.input}
+						style={[
+							styles.input,
+							{
+								borderColor: Colors[theme].icon,
+								color: Colors[theme].text,
+								backgroundColor: Colors[theme].background,
+							},
+						]} // Themed border and text
 						placeholder="Enter API key"
+						placeholderTextColor={Colors[theme].icon}
 						value={apiKey}
 						onChangeText={setApiKey}
 						secureTextEntry
 					/>
 
-					<Text style={styles.label}>Model</Text>
-					<View style={styles.pickerContainer}>
+					<ThemedText style={[styles.label, { color: Colors[theme].text }]}>
+						Model
+					</ThemedText>
+					<View
+						style={[
+							styles.pickerContainer,
+							{ borderColor: Colors[theme].icon },
+						]}
+					>
 						<Picker
 							selectedValue={modelId}
 							onValueChange={(value) => setModelId(value as GoogleModelId)}
-							style={styles.picker}
+							style={[styles.picker, { color: Colors[theme].text }]}
 						>
 							{MODEL_OPTIONS.map((option) => (
 								<Picker.Item
 									key={option.value}
 									label={option.label}
 									value={option.value}
+									color={Colors[theme].text} //added theme text here.
 								/>
 							))}
 						</Picker>
 					</View>
 
-					<Text style={styles.label}>
+					<ThemedText style={[styles.label, { color: Colors[theme].text }]}>
 						Temperature: {temperature.toFixed(2)}
-					</Text>
+					</ThemedText>
 					<Slider
 						style={styles.slider}
 						value={temperature}
-						onValueChange={setTemperature} // Use onValueChange instead of onSlidingComplete
+						onSlidingComplete={setTemperature}
 						minimumValue={0}
 						maximumValue={1}
 						step={0.1}
-						minimumTrackTintColor="#E67E22"
-						maximumTrackTintColor="#D1D1D1"
+						minimumTrackTintColor={Colors[theme].tint}
+						maximumTrackTintColor={Colors[theme].icon}
 					/>
 
 					<Pressable
-						style={[styles.button, loading && styles.buttonDisabled]}
+						style={[
+							styles.button,
+							loading && styles.buttonDisabled,
+							{ backgroundColor: Colors[theme].tint },
+						]}
 						onPress={handleSave}
 						disabled={loading}
 					>
-						<Ionicons name="save-outline" size={20} color="white" />
-						<Text style={styles.buttonText}>
+						<Ionicons
+							name="save-outline"
+							size={20}
+							color={Colors[theme].background}
+						/>
+						<ThemedText
+							style={[styles.buttonText, { color: Colors[theme].background }]}
+						>
 							{loading ? 'Saving...' : 'Save Settings'}
-						</Text>
+						</ThemedText>
 					</Pressable>
 				</View>
 
-				{/* Theme Section */}
-				<View style={styles.section}>
-					<Text style={styles.sectionTitle}>Theme</Text>
-					<View style={styles.pickerContainer}>
-						<Picker
-							selectedValue={theme}
-							onValueChange={(value) =>
-								setTheme(value as NonNullable<ColorSchemeName>)
-							}
-							style={styles.picker}
-						>
-							<Picker.Item label="System" value="system" />
-							<Picker.Item label="Light" value="light" />
-							<Picker.Item label="Dark" value="dark" />
-						</Picker>
-					</View>
-				</View>
-
-				<View style={styles.section}>
-					<Text style={styles.sectionTitle}>About</Text>
-					<Text style={styles.description}>
+				<View
+					style={[
+						styles.section,
+						{ backgroundColor: Colors[theme].background },
+					]}
+				>
+					<ThemedText
+						style={[styles.sectionTitle, { color: Colors[theme].text }]}
+					>
+						About
+					</ThemedText>
+					<ThemedText
+						style={[styles.description, { color: Colors[theme].text }]}
+					>
 						This app generates traditional Gujarati recipes using Google's
 						Gemini AI. All recipes are generated in pure Gujarati language while
 						the app interface remains in English for better accessibility.
-					</Text>
+					</ThemedText>
 				</View>
 			</ScrollView>
 		</SafeAreaView>
@@ -173,10 +211,8 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flex: 1,
-		backgroundColor: '#F5F6FA',
 	},
 	section: {
-		backgroundColor: 'white',
 		borderRadius: 12,
 		padding: 16,
 		margin: 16,
@@ -194,7 +230,6 @@ const styles = StyleSheet.create({
 	},
 	description: {
 		fontSize: 14,
-		color: '#666',
 		marginBottom: 16,
 		lineHeight: 20,
 	},
@@ -202,21 +237,20 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontWeight: '500',
 		marginBottom: 8,
-		color: '#333',
 	},
 	input: {
 		height: 50,
-		backgroundColor: '#F5F6FA',
 		borderRadius: 8,
 		paddingHorizontal: 16,
 		fontSize: 16,
 		marginBottom: 16,
+		borderWidth: 1,
 	},
 	pickerContainer: {
-		backgroundColor: '#F5F6FA',
 		borderRadius: 8,
 		marginBottom: 16,
 		overflow: 'hidden',
+		borderWidth: 1,
 	},
 	picker: {
 		height: 50,
@@ -228,7 +262,6 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	button: {
-		backgroundColor: '#E67E22',
 		borderRadius: 8,
 		padding: 12,
 		flexDirection: 'row',
@@ -239,7 +272,6 @@ const styles = StyleSheet.create({
 		opacity: 0.7,
 	},
 	buttonText: {
-		color: 'white',
 		fontSize: 16,
 		fontWeight: 'bold',
 		marginLeft: 8,

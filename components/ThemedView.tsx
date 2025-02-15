@@ -1,3 +1,4 @@
+//Themed View
 import { View, type ViewProps } from 'react-native';
 
 import { useTheme } from '@/context/ThemeContext';

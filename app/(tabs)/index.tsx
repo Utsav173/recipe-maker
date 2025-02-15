@@ -22,6 +22,9 @@ import { generateRecipe } from '@/lib/ai';
 import RecipeModal from '@/components/RecipeModal';
 import RecipeCard from '@/components/RecipeCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '@/context/ThemeContext'; // Import
+import { Colors } from '@/constants/Colors'; // Import
+import { ThemedText } from '@/components/ThemedText';
 
 export default function HomeScreen() {
 	const [prompt, setPrompt] = useState('');
@@ -31,6 +34,7 @@ export default function HomeScreen() {
 	const [selectedRecipe, setSelectedRecipe] = useState<Recipe['recipe'] | null>(
 		null
 	);
+	const { theme } = useTheme();
 
 	useEffect(() => {
 		const initialize = async () => {
@@ -56,14 +60,15 @@ export default function HomeScreen() {
 
 	const handleGenerate = async () => {
 		if (!prompt.trim()) {
-			Alert.alert('Error', 'કૃપા કરીને વાનગીનું નામ દાખલ કરો');
+			Alert.alert('Error', 'Please enter a recipe name.'); // Simplified message
 			return;
 		}
 
 		const config = (await getConfig()) as any;
 
-		if (!config?.api_key) {
-			Alert.alert('Error', 'કૃપા કરીને સેટિંગ્સમાં API કી દાખલ કરો');
+		if (!config?.apiKey) {
+			// Corrected property name
+			Alert.alert('Error', 'Please enter an API key in settings.'); // Clearer message
 			return;
 		}
 
@@ -79,7 +84,7 @@ export default function HomeScreen() {
 			}
 		} catch (error) {
 			console.error(error);
-			Alert.alert('Error', 'વાનગી જનરેટ કરવામાં ભૂલ આવી');
+			Alert.alert('Error', 'Failed to generate recipe.'); // More concise error
 		} finally {
 			setLoading(false);
 		}
@@ -97,19 +102,33 @@ export default function HomeScreen() {
 	};
 
 	return (
-		<SafeAreaView style={styles.safeArea}>
-			<View style={styles.container}>
+		<SafeAreaView
+			style={[styles.safeArea, { backgroundColor: Colors[theme].background }]}
+		>
+			<View
+				style={[
+					styles.container,
+					{ backgroundColor: Colors[theme].background },
+				]}
+			>
 				<View style={styles.searchContainer}>
 					<View style={styles.inputContainer}>
 						<TextInput
-							style={styles.input}
-							placeholder="વાનગીનું નામ દાખલ કરો..."
+							style={[
+								styles.input,
+								{ borderColor: Colors[theme].icon, color: Colors[theme].text },
+							]} // Themed border and text
+							placeholder="Enter recipe name..."
+							placeholderTextColor={Colors[theme].icon}
 							value={prompt}
 							onChangeText={setPrompt}
 							onSubmitEditing={handleGenerate}
 						/>
 						<TouchableOpacity
-							style={[styles.generateButton, loading && styles.buttonDisabled]}
+							style={[
+								styles.generateButton,
+								{ backgroundColor: Colors[theme].tint },
+							]}
 							onPress={handleGenerate}
 							disabled={loading}
 						>
@@ -120,29 +139,28 @@ export default function HomeScreen() {
 
 				{loading || fetching ? (
 					<View style={styles.loadingContainer}>
-						<ActivityIndicator size="large" color="#E67E22" />
-						<Text style={styles.loadingText}>
-							{loading ? 'વાનગી જનરેટ થઈ રહી છે...' : 'વાનગીઓ લોડ થઈ રહી છે...'}
-						</Text>
+						<ActivityIndicator size="large" color={Colors[theme].tint} />
+						<ThemedText style={styles.loadingText}>
+							{loading ? 'Generating recipe...' : 'Loading recipes...'}
+						</ThemedText>
 					</View>
 				) : (
 					<FlatList
 						data={recipes}
-						keyExtractor={(_, index) => index.toString()} // Use index as key
-						renderItem={(
-							{ item, index } // Destructure index here
-						) => (
+						keyExtractor={(_, index) => index.toString()}
+						renderItem={({ item, index }) => (
 							<RecipeCard
 								recipe={item}
 								onPress={() => setSelectedRecipe(item)}
-								key={index} // Use index as key
+								key={index}
 							/>
 						)}
 						ListEmptyComponent={
-							<Text style={styles.emptyText}>
-								કોઈ વાનગી ઉપલબ્ધ નથી. ઉપર વાનગીનું નામ દાખલ કરો.
-							</Text>
+							<ThemedText style={styles.emptyText}>
+								No recipes available. Enter a recipe name above.
+							</ThemedText>
 						}
+						contentContainerStyle={styles.listContent} // Add padding to the list itself
 					/>
 				)}
 
@@ -158,31 +176,24 @@ export default function HomeScreen() {
 		</SafeAreaView>
 	);
 }
-
 const styles = StyleSheet.create({
 	safeArea: {
 		flex: 1,
 	},
 	container: {
 		flex: 1,
-		backgroundColor: '#F5F6FA',
 		fontFamily: 'MuktaVaani_400Regular',
 	},
 	searchContainer: {
 		padding: 16,
-		backgroundColor: 'white',
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		elevation: 3,
 	},
 	inputContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		backgroundColor: '#F5F6FA',
 		borderRadius: 25,
-		paddingHorizontal: 16,
+		paddingLeft: 16,
+		borderWidth: 1,
+		marginRight: 8,
 	},
 	input: {
 		flex: 1,
@@ -190,11 +201,11 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 	},
 	generateButton: {
-		backgroundColor: '#E67E22',
 		paddingVertical: 12,
 		paddingHorizontal: 16,
 		borderRadius: 25,
 		marginLeft: 8,
+		marginRight: 2,
 	},
 	generateButtonText: {
 		color: 'white',
@@ -209,15 +220,17 @@ const styles = StyleSheet.create({
 	loadingText: {
 		marginTop: 16,
 		fontSize: 16,
-		color: '#666',
 	},
 	emptyText: {
 		textAlign: 'center',
 		marginTop: 32,
 		fontSize: 16,
-		color: '#666',
 	},
 	buttonDisabled: {
 		opacity: 0.5,
+	},
+	listContent: {
+		paddingHorizontal: 8,
+		paddingBottom: 16,
 	},
 });
