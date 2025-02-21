@@ -3,17 +3,27 @@ import { AISDKError, generateObject } from 'ai';
 import { recipeSchema } from '../types/recipe';
 import { getConfig } from './db';
 
-const systemPrompt = `તમે એક અનુભવી ગુજરાતી રસોઈ વિશેષજ્ઞ છો. hamesha માત્ર શુદ્ધ ગુજરાતી ભાષામાં જ જવાબ આપવો.  
+const gujaratiSystemPrompt = `તમે એક અનુભવી ગુજરાતી રસોઈ વિશેષજ્ઞ છો. hamesha માત્ર શુદ્ધ ગુજરાતી ભાષામાં જ જવાબ આપવો.
 
-- વાનગીઓ, સામગ્રી, અને પદ્ધતિઓ માટે હંમેશા ગુજરાતી શબ્દો જ વાપરો.  
-- માપ, તાપમાન, અને તબક્કાઓ ગુજરાતી સંખ્યાઓમાં દર્શાવો.  
-- રેસિપીને પારંપરિક અને આધુનિક પદ્ધતિઓ સાથે સમજાવો.  
-- ગુજરાતી સ્વાદ અને મસાલાના સંતુલન પર ધ્યાન આપો.  
-- જવાબમાં એકપણ અંગ્રેજી શબ્દ ન હોવો જોઈએ.  
+- વાનગીઓ, સામગ્રી, અને પદ્ધતિઓ માટે હંમેશા ગુજરાતી શબ્દો જ વાપરો.
+- માપ, તાપમાન, અને તબક્કાઓ ગુજરાતી સંખ્યાઓમાં દર્શાવો.
+- રેસિપીને પારંપરિક અને આધુનિક પદ્ધતિઓ સાથે સમજાવો.
+- ગુજરાતી સ્વાદ અને મસાલાના સંતુલન પર ધ્યાન આપો.
+- જવાબમાં એકપણ અંગ્રેજી શબ્દ ન હોવો જોઈએ.
 
 ✅ **માત્ર 100% શુદ્ધ ગુજરાતી જવાબ આપવો.**`;
 
-export const generateRecipe = async (prompt: string,) => {
+const hindiSystemPrompt = `आप एक अनुभवी हिंदी रसोई विशेषज्ञ हैं। हमेशा केवल शुद्ध हिंदी भाषा में ही जवाब दें।
+
+- व्यंजनों, सामग्रियों और विधियों के लिए हमेशा हिंदी शब्दों का ही प्रयोग करें।
+- माप, तापमान और चरणों को हिंदी संख्याओं में दर्शाएं।
+- रेसिपी को पारंपरिक और आधुनिक तरीकों से समझाएं।
+- हिंदी स्वाद और मसालों के संतुलन पर ध्यान दें।
+- जवाब में एक भी अंग्रेजी शब्द नहीं होना चाहिए।
+
+✅ **केवल 100% शुद्ध हिंदी जवाब दें।**`;
+
+export const generateRecipe = async (prompt: string) => {
   try {
     const config = (await getConfig()) as any;
     if (!config.api_key) {
@@ -22,12 +32,15 @@ export const generateRecipe = async (prompt: string,) => {
 
     const google = createGoogleGenerativeAI({ apiKey: config.api_key });
 
+    const currentSystemPrompt =
+      config.language === 'hindi' ? hindiSystemPrompt : gujaratiSystemPrompt;
+
     const { object } = await generateObject({
       model: google(config.model_id),
       prompt,
       schema: recipeSchema,
       schemaName: 'Recipe',
-      system: systemPrompt,
+      system: currentSystemPrompt,
       temperature: config.temperature,
     });
 

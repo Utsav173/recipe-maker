@@ -9,6 +9,10 @@ import {
 	useWindowDimensions,
 	Alert,
 	Animated,
+	Linking,
+	FlatList,
+	Image,
+	ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -17,6 +21,22 @@ import { ThemedText } from './ThemedText';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import { Recipe } from '@/types/recipe';
+
+const SPACING = {
+	xs: 8,
+	sm: 12,
+	md: 16,
+	lg: 24,
+	xl: 32,
+};
+
+const RADIUS = {
+	sm: 8,
+	md: 12,
+	lg: 16,
+	xl: 24,
+	xxl: 32,
+};
 
 export default function RecipeModal({
 	recipe,
@@ -32,6 +52,10 @@ export default function RecipeModal({
 	const { height } = useWindowDimensions();
 	const { theme } = useTheme();
 	const slideAnim = React.useRef(new Animated.Value(0)).current;
+	const [youtubeVideos, setYoutubeVideos] = React.useState<any[]>([]);
+	const [videoLoading, setVideoLoading] = React.useState(false);
+
+	const YOUTUBE_API_KEY = 'AIzaSyBZx8wFp74nwQauvXBCpIN1SUZKQhs_LCU';
 
 	React.useEffect(() => {
 		if (visible) {
@@ -60,6 +84,43 @@ export default function RecipeModal({
 				},
 			]
 		);
+	};
+
+	const handleSuggestVideosNew = () => {
+		const searchQuery = `${recipe.title} recipe`;
+		const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
+			searchQuery
+		)}`;
+		Linking.openURL(youtubeSearchUrl);
+	};
+
+	const fetchYoutubeVideos = async (recipeTitle: string) => {
+		setVideoLoading(true);
+		setYoutubeVideos([]);
+		try {
+			const searchQuery = `${recipeTitle} recipe gujarati`;
+			const response = await fetch(
+				`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=3&q=${encodeURIComponent(
+					searchQuery
+				)}&key=${YOUTUBE_API_KEY}&type=video`
+			);
+			const data = await response.json();
+			if (data.items) {
+				setYoutubeVideos(data.items);
+			} else {
+				setYoutubeVideos([]);
+			}
+		} catch (error) {
+			console.error('Error fetching YouTube videos:', error);
+			Alert.alert('Error', 'Failed to load YouTube videos.');
+			setYoutubeVideos([]);
+		} finally {
+			setVideoLoading(false);
+		}
+	};
+
+	const handleSuggestVideos = () => {
+		fetchYoutubeVideos(recipe.title);
 	};
 
 	return (
@@ -91,14 +152,14 @@ export default function RecipeModal({
 					]}
 				>
 					<LinearGradient
-						colors={[Colors[theme].tint + '10', Colors[theme].accent + '05']}
+						colors={[Colors[theme].tint + '15', Colors[theme].background]}
 						style={styles.headerGradient}
 					/>
 
 					<Pressable
 						style={[styles.closeButton]}
 						onPress={onClose}
-						hitSlop={12}
+						hitSlop={SPACING.md}
 					>
 						<MaterialCommunityIcons
 							name="close"
@@ -218,9 +279,85 @@ export default function RecipeModal({
 								</View>
 							))}
 						</View>
+						{youtubeVideos.length > 0 ? null : (
+							<Pressable
+								style={[
+									styles.actionButton,
+									{ backgroundColor: Colors[theme].tint },
+								]}
+								onPress={handleSuggestVideos}
+							>
+								<MaterialCommunityIcons
+									name="youtube"
+									size={20}
+									color={Colors[theme].background}
+								/>
+								<ThemedText style={styles.actionButtonText}>
+									સૂચવેલ YouTube વિડિઓઝ
+								</ThemedText>
+							</Pressable>
+						)}
+
+						{videoLoading ? (
+							<ActivityIndicator
+								size="small"
+								color={Colors[theme].tint}
+								style={styles.loader}
+							/>
+						) : (
+							<View style={styles.videoSection}>
+								{youtubeVideos.length > 0 ? (
+									<FlatList
+										horizontal
+										data={youtubeVideos}
+										keyExtractor={(item) => item.id.videoId}
+										renderItem={({ item }) => (
+											<Pressable
+												style={[
+													styles.videoCard,
+													{ backgroundColor: Colors[theme].surface },
+												]}
+												onPress={() =>
+													Linking.openURL(
+														`https://www.youtube.com/watch?v=${item.id.videoId}`
+													)
+												}
+											>
+												<Image
+													source={{ uri: item.snippet.thumbnails.medium.url }}
+													style={styles.videoThumbnail}
+												/>
+												<View style={styles.videoInfo}>
+													<ThemedText
+														style={styles.videoTitle}
+														numberOfLines={2}
+													>
+														{item.snippet.title}
+													</ThemedText>
+													<ThemedText
+														style={styles.channelName}
+														numberOfLines={1}
+													>
+														{item.snippet.channelTitle}
+													</ThemedText>
+												</View>
+											</Pressable>
+										)}
+										showsHorizontalScrollIndicator={false}
+										contentContainerStyle={styles.videoList}
+										decelerationRate="fast"
+										snapToAlignment="start"
+										snapToInterval={280}
+									/>
+								) : null}
+							</View>
+						)}
 
 						{onDelete && (
-							<Pressable style={styles.deleteButton} onPress={handleDelete}>
+							<Pressable
+								style={[styles.deleteButton, { backgroundColor: '#FFE5E5' }]}
+								onPress={handleDelete}
+							>
 								<MaterialCommunityIcons
 									name="delete"
 									size={20}
@@ -244,13 +381,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 	},
 	modalView: {
-		borderTopLeftRadius: 32,
-		borderTopRightRadius: 32,
+		borderTopLeftRadius: RADIUS.xxl,
+		borderTopRightRadius: RADIUS.xxl,
 		overflow: 'hidden',
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: -5 },
 		shadowOpacity: 0.25,
-		shadowRadius: 12,
+		shadowRadius: RADIUS.md,
 		elevation: 24,
 	},
 	headerGradient: {
@@ -261,60 +398,60 @@ const styles = StyleSheet.create({
 		height: 200,
 	},
 	scrollContent: {
-		padding: 24,
-		paddingTop: 12,
-		paddingBottom: 40,
+		padding: SPACING.lg,
+		paddingTop: SPACING.sm,
+		paddingBottom: SPACING.xl,
 	},
 	closeButton: {
 		position: 'absolute',
-		right: 20,
-		top: 20,
+		right: SPACING.lg,
+		top: SPACING.lg,
 		zIndex: 1,
-		padding: 8,
-		borderRadius: 20,
+		padding: SPACING.xs,
+		borderRadius: RADIUS.xl,
 	},
 	title: {
 		fontSize: 32,
 		fontWeight: 'bold',
-		marginTop: 32,
-		marginBottom: 20,
+		marginTop: SPACING.xl,
+		marginBottom: SPACING.lg,
 	},
 	description: {
 		fontSize: 16,
-		marginVertical: 24,
+		marginVertical: SPACING.lg,
 		lineHeight: 24,
 		opacity: 0.9,
 	},
 	metaInfo: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		gap: 12,
+		gap: SPACING.sm,
 	},
 	metaItem: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		paddingHorizontal: 16,
-		paddingVertical: 8,
-		borderRadius: 16,
-		gap: 8,
+		paddingHorizontal: SPACING.md,
+		paddingVertical: SPACING.xs,
+		borderRadius: RADIUS.lg,
+		gap: SPACING.xs,
 	},
 	metaText: {
 		fontSize: 15,
 		fontWeight: '500',
 	},
 	section: {
-		marginTop: 32,
+		marginTop: SPACING.xl,
 	},
 	sectionTitle: {
 		fontSize: 22,
 		fontWeight: '600',
-		marginBottom: 20,
+		marginBottom: SPACING.lg,
 	},
 	ingredientItem: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginBottom: 16,
-		gap: 12,
+		marginBottom: SPACING.md,
+		gap: SPACING.sm,
 	},
 	bullet: {
 		width: 8,
@@ -328,8 +465,8 @@ const styles = StyleSheet.create({
 	},
 	stepItem: {
 		flexDirection: 'row',
-		marginBottom: 24,
-		gap: 16,
+		marginBottom: SPACING.lg,
+		gap: SPACING.md,
 	},
 	stepNumber: {
 		width: 32,
@@ -350,27 +487,108 @@ const styles = StyleSheet.create({
 	tags: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		gap: 8,
-		marginTop: 32,
+		gap: SPACING.xs,
+		marginTop: SPACING.xl,
 	},
 	tag: {
-		paddingHorizontal: 14,
-		paddingVertical: 8,
-		borderRadius: 20,
+		paddingHorizontal: SPACING.md,
+		paddingVertical: SPACING.xs,
+		borderRadius: RADIUS.xl,
 	},
 	tagText: {
 		fontSize: 14,
 		fontWeight: '600',
 	},
+	actionButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: SPACING.xl,
+		padding: SPACING.md,
+		borderRadius: RADIUS.md,
+		gap: SPACING.xs,
+	},
+	actionButtonText: {
+		fontSize: 16,
+		fontWeight: '600',
+		color: '#FFFFFF',
+	},
+	videoSection: {
+		marginTop: SPACING.xl,
+		marginHorizontal: -SPACING.lg,
+	},
+	videoList: {
+		paddingHorizontal: SPACING.lg,
+		gap: SPACING.md,
+	},
+	videoCard: {
+		width: 300,
+		borderRadius: RADIUS.lg,
+		overflow: 'hidden',
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.15,
+		shadowRadius: RADIUS.md,
+		elevation: 5,
+		transform: [{ scale: 0.98 }],
+	},
+	videoCardActive: {
+		transform: [{ scale: 1 }],
+	},
+	videoThumbnail: {
+		width: '100%',
+		height: 169,
+		resizeMode: 'cover',
+	},
+	playButton: {
+		position: 'absolute',
+		top: '50%',
+		left: '50%',
+		transform: [{ translateX: -25 }, { translateY: -25 }],
+		width: 50,
+		height: 50,
+		borderRadius: 25,
+		backgroundColor: 'rgba(0,0,0,0.7)',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	videoInfo: {
+		padding: SPACING.md,
+	},
+	videoTitle: {
+		fontSize: 15,
+		fontWeight: '600',
+		marginBottom: SPACING.xs,
+		lineHeight: 20,
+	},
+	channelName: {
+		fontSize: 13,
+		opacity: 0.8,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: SPACING.xs,
+	},
+	viewCount: {
+		fontSize: 13,
+		opacity: 0.6,
+		marginTop: SPACING.xs,
+	},
+	loader: {
+		marginTop: SPACING.lg,
+	},
+	emptyText: {
+		textAlign: 'center',
+		opacity: 0.7,
+		marginTop: SPACING.md,
+	},
 	deleteButton: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginTop: 40,
-		padding: 16,
-		backgroundColor: '#FFE5E5',
-		borderRadius: 12,
-		gap: 8,
+		marginTop: SPACING.sm,
+		padding: SPACING.md,
+		borderRadius: RADIUS.md,
+		gap: SPACING.xs,
 	},
 	deleteButtonText: {
 		color: '#FF4444',

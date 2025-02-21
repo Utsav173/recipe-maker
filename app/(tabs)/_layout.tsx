@@ -27,10 +27,10 @@ export default function TabLayout() {
 						tabBarActiveTintColor: Colors[theme].tint,
 						headerShown: false,
 						tabBarButton: HapticTab,
+						tabBarShowLabel: false,
 						tabBarBackground: TabBarBackground,
 						tabBarStyle: Platform.select({
 							ios: {
-								// Use a transparent background on iOS to show the blur effect
 								position: 'absolute',
 							},
 							default: {},
@@ -40,7 +40,6 @@ export default function TabLayout() {
 					<Tabs.Screen
 						name="index"
 						options={{
-							title: 'વાનગીઓ',
 							tabBarIcon: ({ size, color }) => (
 								<Ionicons name="restaurant" size={size} color={color} />
 							),
@@ -49,7 +48,6 @@ export default function TabLayout() {
 					<Tabs.Screen
 						name="settings"
 						options={{
-							title: 'સેટિંગ્સ',
 							tabBarIcon: ({ size, color }) => (
 								<Ionicons name="settings" size={size} color={color} />
 							),

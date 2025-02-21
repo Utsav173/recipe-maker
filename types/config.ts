@@ -18,7 +18,7 @@ export const GoogleModelId = z.enum([
   'gemini-2.0-flash-thinking-exp-01-21',
   'gemini-2.0-flash-exp',
   'gemini-exp-1206',
-  'learnlm-1.5-pro-experimental'
+  'learnlm-1.5-pro-experimental',
 ]);
 
 export type GoogleModelId = z.infer<typeof GoogleModelId>;
@@ -27,4 +27,5 @@ export const configSchema = z.object({
   apiKey: z.string().min(1, 'API key is required'),
   modelId: GoogleModelId.default('gemini-2.0-flash-exp'),
   temperature: z.number().min(0).max(1).default(0.7),
+  language: z.enum(['gujarati', 'hindi']).default('gujarati'),
 });
